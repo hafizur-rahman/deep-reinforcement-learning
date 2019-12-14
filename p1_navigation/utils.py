@@ -37,9 +37,8 @@ def mini_batch_train(env, agent, max_episodes, max_steps, batch_size, eps_start=
             
         if average_score >= 13:      # check if environment is solved
             print('\nEnvironment solved in {: d} episodes!\tAverage Score: {: .2f}'.format(episode - 100, average_score))
-          
-            # agent.save_model()
-            #torch.save(agent.qnetwork_local.state_dict(), '{}.pth'.format(agent.update_type))
+                      
+            torch.save(agent.qnetwork_local.state_dict(), '{}.pth'.format(agent.update_type))
             break          
 
     return episode_rewards
