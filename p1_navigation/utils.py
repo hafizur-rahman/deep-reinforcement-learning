@@ -2,6 +2,7 @@
 
 from collections import deque
 import numpy as np
+import torch
 
 def mini_batch_train(env, agent, max_episodes, max_steps, batch_size, eps_start=1.0, eps_end=0.1, eps_decay=0.995):
     episode_rewards = []
