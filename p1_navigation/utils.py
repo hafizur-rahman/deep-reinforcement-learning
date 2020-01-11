@@ -6,6 +6,7 @@ import torch
 
 def mini_batch_train(env, agent, max_episodes, max_steps, batch_size, eps_start=1.0, eps_end=0.1, eps_decay=0.995):
     episode_rewards = []
+    rewards_mean = []  # list the mean of the window scores
     rewards_window = deque(maxlen=100)
     eps = eps_start
 
@@ -27,19 +28,22 @@ def mini_batch_train(env, agent, max_episodes, max_steps, batch_size, eps_start=
         
         episode_rewards.append(episode_reward)
         rewards_window.append(episode_reward)
+        average_score = np.mean(rewards_window)
+        rewards_mean.append(average_score)
 
         eps = max(eps_end, eps*eps_decay)
-        average_score = np.mean(rewards_window)
 
-        print('\rEpisode {} \tAverage score: {: .2f}'.format(episode, average_score), end="")
+        print('\rEpisode {}\tAverage Score: {:.2f}\teps: {:.4f}\tLR: {}'
+              .format(episode, average_score, eps, agent.lr_scheduler.get_lr()), end="")
         
         if episode % 100 == 0:
-            print('\rEpisode {} \tAverage score: {: .2f}'.format(episode, average_score))
+            print('\rEpisode {}\tAverage Score: {:.2f}\teps: {:.4f}\tLR: {}'
+              .format(episode, average_score, eps, agent.lr_scheduler.get_lr()))
             
         if average_score >= 13:      # check if environment is solved
             print('\nEnvironment solved in {: d} episodes!\tAverage Score: {: .2f}'.format(episode - 100, average_score))
                       
-            torch.save(agent.qnetwork_local.state_dict(), '{}.pth'.format(agent.update_type))
+            torch.save(agent.qnetwork_local.state_dict(), '{}.pth'.format(agent.name))
             break          
 
-    return episode_rewards
+    return episode_rewards, rewards_mean
