@@ -36,20 +36,31 @@ The task is episodic, and in order to solve the environment, your agent must get
 
 ### Instructions
 
-Follow the instructions in `Navigation.ipynb` to get started with training your own agent!  
+```
+$ python app.py -h
+usage: app.py [-h] --unity-env UNITY_ENV --agent-type
+              {dqn-wo-dueling,dqn-w-dueling,ddqn-wo-dueling,ddqn-w-dueling}
+              [--action {train,run}]
 
-### (Optional) Challenge: Learning from Pixels
+optional arguments:
+  -h, --help            show this help message and exit
+  --unity-env UNITY_ENV
+                        Location of Unity env
+  --agent-type {dqn-wo-dueling,dqn-w-dueling,ddqn-wo-dueling,ddqn-w-dueling}
+                        Type of Agent
+  --action {train,run}  Train an agent or Run a trained agent?
+```
 
-After you have successfully completed the project, if you're looking for an additional challenge, you have come to the right place!  In the project, your agent learned from information such as its velocity, along with ray-based perception of objects around its forward direction.  A more challenging task would be to learn directly from pixels!
+### Sample command: Train an agent
 
-To solve this harder task, you'll need to download a new Unity environment.  This environment is almost identical to the project environment, where the only difference is that the state is an 84 x 84 RGB image, corresponding to the agent's first-person view.  (**Note**: Udacity students should not submit a project with this new environment.)
+```
+python app.py --unity-env ./Banana_Linux/Banana.x86_64 --agent-type ddqn-wo-dueling --action train
+```
 
-You need only select the environment that matches your operating system:
-- Linux: [click here](https://s3-us-west-1.amazonaws.com/udacity-drlnd/P1/Banana/VisualBanana_Linux.zip)
-- Mac OSX: [click here](https://s3-us-west-1.amazonaws.com/udacity-drlnd/P1/Banana/VisualBanana.app.zip)
-- Windows (32-bit): [click here](https://s3-us-west-1.amazonaws.com/udacity-drlnd/P1/Banana/VisualBanana_Windows_x86.zip)
-- Windows (64-bit): [click here](https://s3-us-west-1.amazonaws.com/udacity-drlnd/P1/Banana/VisualBanana_Windows_x86_64.zip)
+As an output, the trained networked and plot rewards diagram are saved at local file system.
 
-Then, place the file in the `p1_navigation/` folder in the DRLND GitHub repository, and unzip (or decompress) the file.  Next, open `Navigation_Pixels.ipynb` and follow the instructions to learn how to use the Python API to control the agent.
 
-(_For AWS_) If you'd like to train the agent on AWS, you must follow the instructions to [set up X Server](https://github.com/Unity-Technologies/ml-agents/blob/master/docs/Training-on-Amazon-Web-Service.md), and then download the environment for the **Linux** operating system above.
+### Sample command: Run a trained agent
+```
+python app.py --unity-env ./Banana_Linux/Banana.x86_64 --agent-type ddqn-wo-dueling --action run
+```
