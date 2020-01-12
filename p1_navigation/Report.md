@@ -1,6 +1,7 @@
 [//]: # (Image References)
 
 [image1]: https://user-images.githubusercontent.com/10624937/42135619-d90f2f28-7d12-11e8-8823-82b970a54d7e.gif "Trained Agent"
+[image2]: ./DDQN.jpg "Dueling DQN"
 
 # Project 1: Navigation
 ### Author: Hafizur Rahman
@@ -16,6 +17,8 @@ The project implemented various [Deep Q-Learning](https://storage.googleapis.com
 * [Double Deep Q-Network](https://arxiv.org/abs/1509.06461)
 * [Dueling Q-Network](https://arxiv.org/abs/1511.06581)
 * [Prioritized Experience Replay](https://arxiv.org/abs/1511.05952)
+
+![Dueling DQN][image2]
 
 ### Deep Q-Network
 Initially I tried to solve using a vanilla DQN with Experience Replay. However, it was not converging at all. Once Fixed Q-Targets were introduced, it solved in less than 400 episodes.
@@ -53,7 +56,7 @@ Even though it's supposed to improve the performance, the initial tests showed t
 | ddqn-wo-dueling |  55                |
 | ddqn-w-dueling  |  77                |
 
-The best performance was achieved by `DDQN` with `Dueling` network, scored 13+ in 55 episodes.
+The best performance was achieved by `DDQN` without `Dueling` network, scored 13+ in 55 episodes.
 
 Hyperparameter tuning for `learning rate` and `eps` helped to improve the performance.
 
