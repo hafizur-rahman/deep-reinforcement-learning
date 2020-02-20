@@ -23,7 +23,7 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 class Agent():
     """Interacts with and learns from the environment."""
     
-    def __init__(self, state_size, action_size, num_agents, shared_memory, random_seed):
+    def __init__(self, state_size, action_size, num_agents, random_seed):
         """Initialize an Agent object.
         
         Params
@@ -35,7 +35,7 @@ class Agent():
         self.state_size = state_size
         self.action_size = action_size
         self.seed = random.seed(random_seed)
-
+        
         # Actor Network (w/ Target Network)
         self.actor_local = Actor(state_size, action_size, random_seed).to(device)
         self.actor_target = Actor(state_size, action_size, random_seed).to(device)
@@ -48,17 +48,11 @@ class Agent():
 
         # Noise process        
         self.noise = OUNoise(action_size, random_seed)
-
-        # Replay memory
-        self.memory = shared_memory
     
        
-    def step(self):
-        """Use random sample from buffer to learn."""
-        # Learn, if enough samples are available in memory
-        if len(self.memory) > BATCH_SIZE:
-            experiences = self.memory.sample()
-            self.learn(experiences, GAMMA)
+    def step(self, experiences):
+        """Use random sample from buffer to learn."""        
+        self.learn(experiences, GAMMA)
        
     
     def act(self, state, add_noise=True):
@@ -109,7 +103,8 @@ class Agent():
         critic_loss = F.mse_loss(Q_expected, Q_targets)        
         # Minimize the loss
         self.critic_optimizer.zero_grad()
-        critic_loss.backward()        
+        critic_loss.backward()
+        #torch.nn.utils.clip_grad_norm_(self.actor_target.parameters(), 1)
         self.critic_optimizer.step()
 
         # ---------------------------- update actor ---------------------------- #
@@ -124,6 +119,7 @@ class Agent():
         # Minimize the loss
         self.actor_optimizer.zero_grad()
         actor_loss.backward()
+        #torch.nn.utils.clip_grad_norm_(self.actor_local.parameters(), 1)
         self.actor_optimizer.step()
 
         # ----------------------- update target networks ----------------------- #
@@ -147,18 +143,21 @@ class Agent():
 
 class MADDPG:
     def __init__(self, state_size, action_size, num_agents, random_seed):
-        self.state_size = state_size
         self.action_size = action_size
         self.num_agents = num_agents
         
         self.memory = ReplayBuffer(BUFFER_SIZE, BATCH_SIZE)
-        self.agents = [Agent(state_size, action_size, num_agents, self.memory, random_seed) for _ in range(num_agents)]
+        self.agents = [Agent(state_size, action_size, num_agents, random_seed) for _ in range(num_agents)]
 
     def step(self, states, actions, rewards, next_states, dones):
         self.memory.add(states, actions, rewards, next_states, dones)
 
-        for agent in self.agents:
-            agent.step()
+        # Learn, if enough samples are available in memory
+        if len(self.memory) > BATCH_SIZE:
+            for agent in self.agents:
+                experiences = self.memory.sample()
+                
+                agent.step(experiences)
 
     def act(self, states, add_noise=True):
         actions = np.zeros([self.num_agents, self.action_size])
@@ -174,7 +173,7 @@ class MADDPG:
     def reset(self):        
         for agent in self.agents:
             agent.reset()
-            
+    
 class OUNoise:
     """Ornstein-Uhlenbeck process."""
 
@@ -184,8 +183,9 @@ class OUNoise:
         self.theta = theta
         self.sigma = sigma
         self.seed = random.seed(seed)
-        self.reset()
-
+        self.size = size
+        self.reset()  
+        
     def reset(self):
         """Reset the internal state (= noise) to mean (mu)."""
         self.state = copy.copy(self.mu)
@@ -193,7 +193,7 @@ class OUNoise:
     def sample(self):
         """Update internal state and return it as a noise sample."""
         x = self.state
-        dx = self.theta * (self.mu - x) + self.sigma * np.array([random.random() for i in range(len(x))])
+        dx = self.theta * (self.mu - x) + self.sigma * np.random.randn(self.size)
         self.state = x + dx
         return self.state
 
