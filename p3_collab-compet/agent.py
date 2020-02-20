@@ -10,7 +10,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 
 BUFFER_SIZE = int(1e5)  # replay buffer size
-BATCH_SIZE = 256     # minibatch size
+BATCH_SIZE = 250        # minibatch size
 GAMMA = 0.99            # discount factor
 TAU = 1e-3              # for soft update of target parameters
 LR_ACTOR = 1e-4         # learning rate of the actor 
@@ -45,10 +45,6 @@ class Agent():
         self.critic_local = Critic(state_size, action_size, num_agents, random_seed).to(device)
         self.critic_target = Critic(state_size, action_size, num_agents, random_seed).to(device)
         self.critic_optimizer = optim.Adam(self.critic_local.parameters(), lr=LR_CRITIC, weight_decay=WEIGHT_DECAY)
-
-        # initialize targets same as original networks
-        self.hard_update(self.actor_target, self.actor_local)
-        self.hard_update(self.critic_target, self.critic_local)
 
         # Noise process        
         self.noise = OUNoise(action_size, random_seed)
@@ -113,8 +109,7 @@ class Agent():
         critic_loss = F.mse_loss(Q_expected, Q_targets)        
         # Minimize the loss
         self.critic_optimizer.zero_grad()
-        critic_loss.backward()
-        #torch.nn.utils.clip_grad_norm_(self.critic_local.parameters(), 1)
+        critic_loss.backward()        
         self.critic_optimizer.step()
 
         # ---------------------------- update actor ---------------------------- #
@@ -128,9 +123,7 @@ class Agent():
         
         # Minimize the loss
         self.actor_optimizer.zero_grad()
-        actor_loss.backward()        
-        
-        torch.nn.utils.clip_grad_norm_(self.actor_local.parameters(), 1)
+        actor_loss.backward()
         self.actor_optimizer.step()
 
         # ----------------------- update target networks ----------------------- #
@@ -151,17 +144,6 @@ class Agent():
         for target_param, local_param in zip(target_model.parameters(), local_model.parameters()):
             target_param.data.copy_(tau*local_param.data + (1.0-tau)*target_param.data)
 
-    
-    def hard_update(self, target, source):
-        """
-        Copy network parameters from source to target
-        Inputs:
-            target (torch.nn.Module): Net to copy parameters to
-            source (torch.nn.Module): Net whose parameters to copy
-        """
-        for target_param, param in zip(target.parameters(), source.parameters()):
-            target_param.data.copy_(param.data)
-
 
 class MADDPG:
     def __init__(self, state_size, action_size, num_agents, random_seed):
@@ -180,14 +162,14 @@ class MADDPG:
 
     def act(self, states, add_noise=True):
         actions = np.zeros([self.num_agents, self.action_size])
-        for index, agent in enumerate(self.agents):
-            actions[index, :] = agent.act(states[index], add_noise)
+        for i, agent in enumerate(self.agents):
+            actions[i, :] = agent.act(states[i], add_noise)
         return actions
 
     def save_weights(self):
-        for index, agent in enumerate(self.agents):
-            torch.save(agent.actor_local.state_dict(), 'agent{}_checkpoint_actor.pth'.format(index+1))
-            torch.save(agent.critic_local.state_dict(), 'agent{}_checkpoint_critic.pth'.format(index+1))
+        for i, agent in enumerate(self.agents):
+            torch.save(agent.actor_local.state_dict(), 'agent{}_checkpoint_actor.pth'.format(i+1))
+            torch.save(agent.critic_local.state_dict(), 'agent{}_checkpoint_critic.pth'.format(i+1))
     
     def reset(self):        
         for agent in self.agents:
