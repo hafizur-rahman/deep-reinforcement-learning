@@ -2,6 +2,12 @@
 
 [image1]: https://user-images.githubusercontent.com/10624937/42135623-e770e354-7d12-11e8-998d-29fc74429ca2.gif "Trained Agent"
 
+[image2]: ./images/actor_network.png "Actor Network"
+
+[image3]: ./images/critic_network.png "Critic Network"
+
+[image4]: ./images/scores.png "Rewards"
+
 # Deep Reinforcement Learning - Collaboration and Competition
 
 Author: Hafizur Rahman
@@ -30,9 +36,65 @@ Initially the observations were flattened and added to replay buffer and plain D
 
 As mentioned in benchmark implementation, it was noted that each agent receives its own, local observation. Thus, so the code was modified to simultaneously train both agents through self-play. This MADDPG has 2 DDPG agents and experience is collected from both agents and added to a shared replay buffer.
 
+### Noise
+Noise was added to the actions to promotoe exploration.
 
+## Model Architecture
+Actor-Critic model with separate target network is used to improvde training stability.
+
+### Actor Network
+Actor (policy) network maps states -> actions.
+
+* The model has 3 fully connected layers
+* The first layer takes in the state passes it through 256 nodes with `relu` activation
+* The second layer take the output from first layer and passes through 128 nodes with `relu` activation
+* The third layer takes the output from the previous layer and outputs the action size with `tanh` activation
+* Adam optimizer
+
+```
+Input nodes (8x3=24 states ) 
+  -> Fully Connected Layer (256 units, Relu activation) 
+      -> Fully Connected Layer (128 units, Relu activation) 
+         -> Ouput nodes (2 units/actions, tanh activation)
+```
+
+### Critic Network
+Critic (value) network maps (state, action) pairs -> Q-values.
+
+The model has 3 fully connected layers
+* The first layer takes the concatenated states and actions passes through 256 nodes with `relu` activation
+* We then pass this to second layer which forwards through 128 nodes with `relu` activation
+* The third layer takes the output from the previous layer and outputs 1
+* Adam optimizer
+
+```
+Input nodes ( [ 8x3=24 states + 2 actions ] x 2 Agents = 52  ) 
+  -> Fully Connected Layer (256 units, Relu activation)
+      -> Fully Connected Layer (128 units, Relu activation) 
+        -> Ouput node (1 unit, no activation)
+```
+
+### Hyperparameters
+
+| Param  | Value | Description |
+| ------------- | ------------- | ------------- |
+| BUFFER_SIZE  | 100000 | Replay Buffer Size |
+| BATCH_SIZE | 250 | Mini batch size |
+| GAMMA | 0.99 | Discount factor |
+| TAU | 1e-3| Soft update of target network param |
+| LR_ACTOR | 1e-4 | Actor learning rate |
+| LR_CRITIC | 1e-3 | Critic learning rate |
+| WEIGHT_DECAY | 0 | L2 Weight Decay |
 
 ## Plot of Rewards
+![Scores][image4]
+
 
 ## Ideas for Future Work
 
+Stabilizing the model was really challenging. Further exploration on the following may improve training performance.
+
+* Implement Prioritized Experience Replay
+* Skipping learning for several steps and/or learn multiple times in a single episode
+* Implement algorithms like PPO or D4PG
+* Change number of layers or neuronsW
